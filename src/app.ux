@@ -1,0 +1,10 @@
+<script>
+export default {
+  onCreate() {
+    console.log('[MOOD] app onCreate')
+  },
+  onDestroy() {
+    console.log('[MOOD] app onDestroy')
+  }
+}
+</script>

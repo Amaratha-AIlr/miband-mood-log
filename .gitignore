@@ -1,0 +1,27 @@
+﻿# 依赖与构建产物
+node_modules/
+dist/
+.temp_*/
+*.log
+
+# 打包产物（用 GitHub Releases 分发）
+*.rpk
+
+# ⚠️ 签名密钥：绝对不能提交
+sign/
+*.pem
+*.p12
+*.jks
+*.keystore
+
+# 系统 / 编辑器
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# 临时/杂项
+*.zip
+*.jpg
+*.jpeg
+*.webp

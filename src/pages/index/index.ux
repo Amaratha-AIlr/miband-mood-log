@@ -1,0 +1,630 @@
+<template>
+  <div class="page" ontouchstart="onTouchStart" ontouchend="onTouchEnd">
+
+    <!-- ============ 视图 1：打卡 ============ -->
+    <div class="view" if="{{view === 'home'}}">
+      <div class="head">
+        <text class="cnt">今天 {{count}} 次</text>
+        <text class="streak">连续 {{streak}} 天</text>
+      </div>
+
+      <div class="grid">
+        <div class="cell" for="{{moods}}" onclick="pick($item.id)">
+          <image class="ic" src="{{$item.img}}"></image>
+          <text class="mname">{{$item.name}}</text>
+        </div>
+      </div>
+
+      <div class="nav">
+        <div class="nbtn" onclick="go('history')">
+          <text class="nbtn-t">回看</text>
+        </div>
+        <div class="nbtn" onclick="go('stats')">
+          <text class="nbtn-t">统计</text>
+        </div>
+        <div class="nbtn" onclick="go('about')">
+          <text class="nbtn-t">关于</text>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 视图 4：关于 ============ -->
+    <div class="view" if="{{view === 'about'}}">
+      <div class="head2">
+        <div class="nbtn" onclick="back">
+          <text class="nbtn-t">返回</text>
+        </div>
+        <text class="title">关于</text>
+      </div>
+
+      <div class="aboutbody">
+        <image class="authors" src="/common/images/authors.png"></image>
+
+        <text class="motto">情绪不需要被整理，只需要被看见。</text>
+
+        <text class="sign">Amarantha</text>
+        <text class="sign2">搭载 DSH 的 DeepSeek-V4.1-Flash</text>
+
+        <text class="ver">v{{version}}</text>
+      </div>
+    </div>
+
+    <!-- ============ 视图 2：回看 ============ -->
+    <div class="view" if="{{view === 'history'}}">
+      <div class="head2">
+        <div class="nbtn" onclick="back">
+          <text class="nbtn-t">返回</text>
+        </div>
+        <text class="title">最近 7 天</text>
+      </div>
+
+      <list class="hlist">
+        <list-item type="day" for="{{history}}">
+          <div class="hrow">
+            <text class="hdate">{{$item.label}}</text>
+            <div class="hstrip">
+              <div class="hdot" for="{{$item.chips}}" style="background-color: {{$item.color}}"></div>
+            </div>
+            <text class="hsum">{{$item.summary}}</text>
+          </div>
+        </list-item>
+      </list>
+
+      <text class="empty" if="{{history.length === 0}}">还没有记录，回去点一个心情吧</text>
+    </div>
+
+    <!-- ============ 视图 3：统计 ============ -->
+    <div class="view" if="{{view === 'stats'}}">
+      <div class="head2">
+        <div class="nbtn" onclick="back">
+          <text class="nbtn-t">返回</text>
+        </div>
+        <text class="title">近 35 天</text>
+      </div>
+
+      <!-- 月度热力图：7 列 × 5 行 -->
+      <div class="heat">
+        <div class="hcell" for="{{heat}}"
+             style="background-color: {{$item.bg}}"></div>
+      </div>
+
+      <text class="legend">颜色 = 当天的主导心情，灰色 = 当天没记录</text>
+
+      <div class="bars">
+        <div class="bar" for="{{bars}}">
+          <image class="barface" src="{{$item.img}}"></image>
+          <text class="barname">{{$item.name}}</text>
+          <div class="bartrack">
+            <div class="barfill" style="background-color: {{$item.color}}; width: {{$item.pct}}%"></div>
+          </div>
+          <text class="barpct">{{$item.pct}}%</text>
+        </div>
+        <text class="empty" if="{{bars.length === 0}}">还没有足够的数据</text>
+      </div>
+    </div>
+
+  </div>
+</template>
+
+<style>
+  .page {
+    width: 100%;
+    height: 520px;
+    flex-direction: column;
+    background-color: #000000;
+  }
+
+  .view {
+    width: 100%;
+    height: 520px;
+    flex-direction: column;
+    padding: 8px;
+  }
+
+  /* ---------- 顶部状态 ---------- */
+  .head {
+    width: 100%;
+    height: 46px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0px 6px;
+    border-radius: 10px;
+    background-color: #141414;
+  }
+
+  .cnt {
+    font-size: 15px;
+    color: #ff8a00;
+  }
+
+  .streak {
+    font-size: 13px;
+    color: #3ddc84;
+  }
+
+  /* ---------- 心情网格（3 列 × 2 行） ---------- */
+  .grid {
+    width: 100%;
+    flex-direction: row;
+    flex-wrap: wrap;
+    margin-top: 8px;
+  }
+
+  .cell {
+    width: 65px;
+    height: 86px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* 心情图标：直接用 Fluent Emoji 图片，无需任何 CSS 五官
+     ⚠️ flex-shrink: 0 是必须的 —— flex 默认 flex-shrink:1，
+        一行放不下时会把图标横向压扁成椭圆（这个坑踩过）。 */
+  .ic {
+    width: 48px;
+    height: 48px;
+    flex-shrink: 0;
+  }
+
+  .mname {
+    font-size: 10px;
+    color: #cccccc;
+    margin-top: 2px;
+  }
+
+  /* 注：原来这里有一套「纯 CSS 画脸」的五官样式（.eye / .brow / .mouth）。
+     切换到 Fluent Emoji 图片后已全部删除。
+     如果将来需要退回 CSS 方案，参考 07-工具-渲染验证台 里的实现 ——
+     注意两个坑：① 定位只用 left，right 实测不生效；
+                  ② 容器要加 flex-shrink: 0，否则脸会被压成椭圆。 */
+
+  /* ---------- 底部导航 ---------- */
+  .nav {
+    width: 100%;
+    flex-direction: row;
+    justify-content: space-around;
+    margin-top: 6px;
+  }
+
+  .nbtn {
+    height: 34px;
+    padding: 0px 22px;
+    justify-content: center;
+    align-items: center;
+    border-radius: 17px;
+    background-color: #222222;
+  }
+
+  .nbtn-t {
+    font-size: 13px;
+    color: #ffffff;
+  }
+
+  /* ---------- 回看 ---------- */
+  .head2 {
+    width: 100%;
+    height: 40px;
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .title {
+    font-size: 14px;
+    color: #ffffff;
+    margin-left: 12px;
+  }
+
+  .hlist {
+    width: 100%;
+    height: 460px;
+    margin-top: 4px;
+  }
+
+  .hrow {
+    width: 100%;
+    height: 42px;
+    flex-direction: row;
+    align-items: center;
+    padding: 0px 6px;
+    margin-bottom: 4px;
+    border-radius: 8px;
+    background-color: #141414;
+  }
+
+  .hdate {
+    width: 42px;
+    font-size: 11px;
+    color: #9e9e9e;
+  }
+
+  .hstrip {
+    flex: 1;
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .hdot {
+    width: 9px;
+    height: 9px;
+    border-radius: 5px;
+    margin-right: 3px;
+  }
+
+  .hsum {
+    width: 52px;
+    font-size: 10px;
+    color: #ff8a00;
+    text-align: right;
+  }
+
+  /* ---------- 统计 ---------- */
+  .heat {
+    width: 100%;
+    flex-direction: row;
+    flex-wrap: wrap;
+    margin-top: 6px;
+  }
+
+  .hcell {
+    width: 24px;
+    height: 24px;
+    border-radius: 5px;
+    margin: 1px;
+  }
+
+  .legend {
+    font-size: 9px;
+    color: #777777;
+    margin-top: 4px;
+  }
+
+  .bars {
+    width: 100%;
+    flex-direction: column;
+    margin-top: 8px;
+  }
+
+  .bar {
+    width: 100%;
+    height: 32px;
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 4px;
+  }
+
+  .barface {
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
+  }
+
+  .barname {
+    width: 34px;
+    font-size: 10px;
+    color: #cccccc;
+    margin-left: 6px;
+  }
+
+  .bartrack {
+    flex: 1;
+    height: 10px;
+    border-radius: 5px;
+    background-color: #222222;
+  }
+
+  .barfill {
+    height: 10px;
+    border-radius: 5px;
+  }
+
+  .barpct {
+    width: 34px;
+    font-size: 10px;
+    color: #9e9e9e;
+    text-align: right;
+  }
+
+  .empty {
+    font-size: 11px;
+    color: #666666;
+    margin-top: 12px;
+  }
+
+  /* ---------- 关于页 ---------- */
+  .aboutbody {
+    width: 100%;
+    height: 460px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .authors {
+    width: 178px;
+    height: 92px;
+  }
+
+  .motto {
+    font-size: 11px;
+    color: #ffffff;
+    margin-top: 14px;
+    text-align: center;
+    width: 202px;
+  }
+
+  .sign {
+    font-size: 13px;
+    color: #ff8a00;
+    margin-top: 16px;
+  }
+
+  .sign2 {
+    font-size: 10px;
+    color: #888888;
+    margin-top: 3px;
+  }
+
+  .ver {
+    font-size: 9px;
+    color: #777777;
+    margin-top: 14px;
+  }
+</style>
+
+<script>
+import vibrator from '@system.vibrator'
+import app from '@system.app'
+import {
+  MOODS, record, dayEntries, allDays, recentStamps,
+  streakFrom, dominantMood, stamp, shortDate
+} from '../../common/scripts/moods.js'
+
+const HOME = 'home'
+const HISTORY = 'history'
+const STATS = 'stats'
+
+/* 横向滑动判定阈值 */
+const SWIPE_MIN_DX = 45      /* 至少滑动 45px */
+const SWIPE_MAX_MS = 700     /* 700ms 内完成 */
+
+export default {
+  data: {
+    view: HOME,
+    version: '1.1.0',
+    moods: MOODS,
+    count: 0,
+    streak: 0,
+    history: [],
+    heat: [],
+    bars: []
+  },
+
+  onInit() {
+    console.log('[MOOD] onInit')
+    this.entriesByStamp = {}
+    this.days = []
+    this.reload()
+  },
+
+  onShow() {
+    console.log('[MOOD] onShow')
+    this.reload()
+  },
+
+  /** 重新载入全部状态（记录后会调） */
+  reload() {
+    const that = this
+    const today = stamp()
+
+    return allDays().then(function (days) {
+      that.days = days
+      that.streak = streakFrom(days)
+      return dayEntries(today)
+    }).then(function (todayList) {
+      that.count = todayList.length
+      return that.buildHistory()
+    }).then(function () {
+      return that.buildStats()
+    }).catch(function (e) {
+      console.log('[MOOD] reload 出错: ' + (e && e.message ? e.message : e))
+    })
+  },
+
+  /** 回看：最近 7 天 */
+  buildHistory() {
+    const that = this
+    const stamps = recentStamps(7)
+    const jobs = stamps.map(function (s) {
+      return dayEntries(s).then(function (list) {
+        that.entriesByStamp[s] = list
+        const chips = []
+        let worst = -1
+        let worstN = 0
+        const buckets = []
+        for (let i = 0; i < MOODS.length; i++) buckets.push(0)
+        for (let i = 0; i < list.length; i++) {
+          const e = list[i]
+          if (e && e.e >= 0 && e.e < MOODS.length) buckets[e.e]++
+        }
+        for (let i = 0; i < buckets.length; i++) {
+          if (buckets[i] > worstN) { worstN = buckets[i]; worst = i }
+        }
+        // 最多展示 7 个圆点，多出来的省略
+        for (let i = 0; i < list.length && i < 7; i++) {
+          chips.push({ color: MOODS[list[i].e] ? MOODS[list[i].e].color : '#444444' })
+        }
+        return {
+          label: shortDate(s),
+          chips: chips,
+          color: '',
+          summary: list.length === 0 ? '—' :
+            (MOODS[worst] ? MOODS[worst].name : '') + ' ' + list.length + '次'
+        }
+      })
+    })
+    return Promise.all(jobs).then(function (rows) {
+      that.history = rows
+    })
+  },
+
+  /** 统计：35 天热力图 + 各心情占比 */
+  buildStats() {
+    const that = this
+    // 先把最近 35 天的记录都读出来（这时候数据量不大，可以接受）
+    const stamps = recentStamps(35)
+    const jobs = stamps.map(function (s) {
+      if (that.entriesByStamp[s]) return Promise.resolve(that.entriesByStamp[s])
+      return dayEntries(s).then(function (list) {
+        that.entriesByStamp[s] = list
+        return list
+      })
+    })
+
+    return Promise.all(jobs).then(function (all) {
+      // 热力图
+      const heat = []
+      const total = []
+      for (let i = 0; i < MOODS.length; i++) total.push(0)
+      for (let i = 0; i < stamps.length; i++) {
+        const list = all[i] || []
+        const dom = dominantMood(list)
+        for (let j = 0; j < list.length; j++) {
+          const e = list[j]
+          if (e && e.e >= 0 && e.e < MOODS.length) total[e.e]++
+        }
+        heat.push({
+          stamp: stamps[i],
+          bg: dom < 0 ? '#1c1c1c' : MOODS[dom].color
+        })
+      }
+      // 热力图按时间正序（左上最早）
+      heat.reverse()
+      that.heat = heat
+
+      // 占比条
+      let sum = 0
+      for (let i = 0; i < total.length; i++) sum += total[i]
+      const bars = []
+      for (let i = 0; i < MOODS.length; i++) {
+        if (total[i] > 0) {
+          bars.push({
+            name: MOODS[i].name,
+            color: MOODS[i].color,
+            img: MOODS[i].img,
+            pct: sum ? Math.round(total[i] * 100 / sum) : 0
+          })
+        }
+      }
+      bars.sort(function (a, b) { return b.pct - a.pct })
+      that.bars = bars
+      console.log('[MOOD] stats 就绪：' + stamps.length + ' 天，共 ' + sum + ' 次记录')
+    })
+  },
+
+  /* ---------- 交互 ---------- */
+
+  pick(moodId) {
+    /* 如果这次触摸是横向滑动，就不要当成点击（避免滑动时误记一笔） */
+    if (this.swiped) {
+      console.log('[MOOD] pick 忽略：本次是滑动手势')
+      return
+    }
+    const that = this
+    vibrator.vibrate({ mode: 'short' })
+    return record(moodId).then(function (r) {
+      if (r && r.ok) {
+        console.log('[MOOD] 记录成功 mood=' + moodId + ' 今天共 ' + r.count + ' 次')
+        that.count = r.count
+        return that.reload()
+      }
+      console.log('[MOOD] 记录失败: ' + JSON.stringify(r))
+    }).catch(function (e) {
+      console.log('[MOOD] pick 出错: ' + (e && e.message ? e.message : e))
+    })
+  },
+
+  go(v) {
+    console.log('[MOOD] switch view -> ' + v)
+    /* 分级返回：把当前视图压栈，返回时逐级弹出 */
+    if (v !== this.view) {
+      if (!this.stack) this.stack = []
+      this.stack.push(this.view)
+      if (this.stack.length > 12) this.stack.shift()
+    }
+    this.view = v
+    if (v === HISTORY) this.buildHistory()
+    if (v === STATS) this.buildStats()
+  },
+
+  /** 逐级返回：回上一级；已经在主页就不再回退（交给系统退出） */
+  back() {
+    if (!this.stack || this.stack.length === 0) {
+      console.log('[MOOD] back: 已在最底层')
+      return
+    }
+    const prev = this.stack.pop()
+    console.log('[MOOD] back -> ' + prev + '（栈剩 ' + this.stack.length + '）')
+    this.view = prev
+    if (prev === HISTORY) this.buildHistory()
+    if (prev === STATS) this.buildStats()
+  },
+
+  /* ---------- 手势：横向滑动 ---------- */
+
+  point(e) {
+    if (!e) return null
+    let t = null
+    if (e.touches && e.touches.length > 0) t = e.touches[0]
+    else if (e.changedTouches && e.changedTouches.length > 0) t = e.changedTouches[0]
+    else t = e
+    if (!t) return null
+    const x = typeof t.clientX === 'number' ? t.clientX : t.offsetX
+    const y = typeof t.clientY === 'number' ? t.clientY : t.offsetY
+    if (typeof x !== 'number' || typeof y !== 'number') return null
+    return { x: x, y: y }
+  },
+
+  onTouchStart(e) {
+    const p = this.point(e)
+    if (!p) return
+    this.touchFrom = { x: p.x, y: p.y, t: Date.now() }
+  },
+
+  onTouchEnd(e) {
+    const from = this.touchFrom
+    this.touchFrom = null
+    if (!from) return
+    const p = this.point(e)
+    if (!p) return
+
+    const dx = p.x - from.x
+    const dy = p.y - from.y
+    const dt = Date.now() - from.t
+    if (dt > SWIPE_MAX_MS) return
+    if (Math.abs(dx) < SWIPE_MIN_DX) return
+    if (Math.abs(dx) < Math.abs(dy) * 1.5) return
+
+    /* 标记一下，防止同一次手势又被当成点击 */
+    this.swiped = true
+    const that = this
+    setTimeout(function () { that.swiped = false }, 300)
+
+    console.log('[MOOD] swipe dx=' + Math.round(dx) + ' 当前视图=' + this.view)
+
+    /* 二级页面 -> 回主界面；主界面 -> 退出应用 */
+    if (this.view !== HOME) {
+      this.view = HOME
+      this.stack = []
+      this.reload()
+    } else {
+      try {
+        app.terminate()
+      } catch (err) {
+        console.log('[MOOD] terminate 异常')
+      }
+    }
+  }
+}
+</script>

@@ -1,0 +1,23 @@
+{
+  "name": "miband11-mood",
+  "version": "1.0.0",
+  "description": "心情记录 —— 手环上的 emoji 心情打卡（纯 CSS 画脸，零图片资源）",
+  "engines": {
+    "node": ">=8.10"
+  },
+  "scripts": {
+    "start": "aiot server --watch --open-nuttx",
+    "build": "aiot build --complete-feature",
+    "release": "aiot release --complete-feature --drop-console true",
+    "watch": "aiot watch --open-nuttx"
+  },
+  "devDependencies": {
+    "@aiot-toolkit/velasim": "^0.1.26-beta.3",
+    "aiot-toolkit": "^2.0.5"
+  },
+  "private": true,
+  "aiot": {
+    "projectType": "quickapp",
+    "deviceType": "watch"
+  }
+}

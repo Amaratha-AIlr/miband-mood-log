@@ -1,0 +1,38 @@
+{
+  "package": "com.miband11exploration.mood",
+  "name": "心情记录",
+  "icon": "/common/images/logo.png",
+  "versionName": "1.1.0",
+  "versionCode": 2,
+  "minAPILevel": 1,
+  "features": [
+    {
+      "name": "system.storage"
+    },
+    {
+      "name": "system.vibrator"
+    },
+    {
+      "name": "system.app"
+    }
+  ],
+  "deviceTypeList": [
+    "watch"
+  ],
+  "config": {
+    "logLevel": "debug",
+    "designWidth": "device-width"
+  },
+  "display": {
+    "backgroundColor": "#000000"
+  },
+  "router": {
+    "entry": "pages/index",
+    "pages": {
+      "pages/index": {
+        "component": "index",
+        "path": "/"
+      }
+    }
+  }
+}
