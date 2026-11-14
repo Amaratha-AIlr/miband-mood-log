@@ -1,0 +1,54 @@
+{
+  "item": {
+    "id": "com.miband11exploration.mood",
+    "restype": "quick_app",
+    "name": "心情打卡",
+    "description": "随手点一下，记录此刻心情",
+    "preview": [
+      "media/xiaomi_band_10-2026-10-16-21-37-34.webp"
+    ],
+    "icon": "media/logo.png",
+    "cover": "media/调整比例为3_2.png",
+    "author": [
+      {
+        "name": "Amaratha",
+        "bindABAccount": true
+      }
+    ]
+  },
+  "links": [
+    {
+      "title": "米坛社区",
+      "url": "https://www.bandbbs.cn/resources/8661/",
+      "icon": "link"
+    },
+    {
+      "title": "GitHub仓库",
+      "url": "https://github.com/Amaratha-AIlr/miband-mood-log",
+      "icon": "github-logo"
+    }
+  ],
+  "downloads": {
+    "xmb11nfc": {
+      "version": "1.1.0",
+      "file_name": "downloads/com.miband11exploration.mood.release.1.1.0.rpk",
+      "versionCode": 2
+    },
+    "xmb11": {
+      "version": "1.1.0",
+      "file_name": "downloads/com.miband11exploration.mood.release.1.1.0.rpk",
+      "versionCode": 2
+    },
+    "xmb10nfc": {
+      "version": "1.1.0",
+      "file_name": "downloads/com.miband11exploration.mood.release.1.1.0.rpk",
+      "versionCode": 2
+    },
+    "xmb10": {
+      "version": "1.1.0",
+      "file_name": "downloads/com.miband11exploration.mood.release.1.1.0.rpk",
+      "versionCode": 2
+    }
+  },
+  "ext": {}
+}
